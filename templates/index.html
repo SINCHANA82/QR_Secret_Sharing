@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CipherLink: Quantum Secret Sharing</title>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/google/material-design-icons/master/png/action/lock_black_24dp.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        :root {
+            /* Dark Theme Colors */
+            --bg-dark-primary: #1a1a2e; /* Deep Dark Blue */
+            --bg-dark-secondary: #16213e; /* Slightly Lighter Dark Blue */
+            --bg-card: #0f3460; /* Darker Blue for Cards */
+            --accent-neon-green: #00ff00; /* Vibrant Green */
+            --accent-neon-blue: #00bcd4; /* Cyan Blue */
+            --text-light: #e0e0e0; /* Light Grey Text */
+            --text-muted: #a0a0a0; /* Muted Grey Text */
+            --border-glow: rgba(0, 255, 0, 0.4);
+            --shadow-dark: rgba(0, 0, 0, 0.4);
+            --input-bg: #1a1a2e;
+            --input-border: #0e2b40;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --info-color: #00bcd4;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(145deg, var(--bg-dark-primary), var(--bg-dark-secondary));
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            color: var(--text-light);
+            line-height: 1.6;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+
+        /* Container with a subtle glow and modern structure */
+        .cyber-container {
+            background: var(--bg-card);
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 0 25px var(--shadow-dark), 0 0 50px var(--border-glow) inset; /* Outer shadow and inner glow */
+            max-width: 1000px;
+            width: 100%;
+            animation: fadeInGlow 1.2s ease-out forwards;
+            position: relative;
+            z-index: 1; /* Ensure content is above background elements */
+            border: 1px solid rgba(0, 255, 0, 0.2); /* Subtle neon border */
+        }
+
+        @keyframes fadeInGlow {
+            from { opacity: 0; transform: translateY(40px) scale(0.95); box-shadow: 0 0 0 transparent; }
+            to { opacity: 1; transform: translateY(0) scale(1); box-shadow: 0 0 25px var(--shadow-dark), 0 0 50px var(--border-glow) inset; }
+        }
+
+        /* Header Styling */
+        .cyber-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .cyber-header h1 {
+            font-family: 'Rajdhani', sans-serif;
+            color: var(--accent-neon-green);
+            font-weight: 700;
+            font-size: 3.2rem;
+            margin-bottom: 15px;
+            text-shadow: 0 0 15px var(--accent-neon-green); /* Neon glow effect */
+            letter-spacing: 2px;
+        }
+
+        .cyber-header h1 i {
+            margin-right: 15px;
+            color: var(--accent-neon-blue);
+            font-size: 2.8rem;
+        }
+
+        .cyber-header p {
+            color: var(--text-muted);
+            font-size: 1.15rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Section Cards */
+        .cyber-card-section {
+            background: rgba(14, 43, 64, 0.6); /* Slightly transparent dark blue */
+            backdrop-filter: blur(5px); /* Frosted glass effect */
+            padding: 35px;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2); /* Subtle glow around cards */
+            margin-bottom: 40px;
+            border: 1px solid rgba(0, 255, 0, 0.15);
+        }
+
+        .cyber-card-section h3 {
+            font-family: 'Rajdhani', sans-serif;
+            color: var(--accent-neon-blue);
+            font-weight: 600;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-shadow: 0 0 8px var(--accent-neon-blue);
+        }
+
+        .cyber-card-section h3 i {
+            color: var(--accent-neon-green);
+            font-size: 1.8rem;
+        }
+
+        /* Form Labels & Inputs */
+        .form-label {
+            font-weight: 500;
+            color: var(--text-light);
+            margin-bottom: 10px;
+            font-size: 1rem;
+            display: block; /* Ensure label is block for spacing */
+        }
+
+        .form-control {
+            background-color: var(--input-bg);
+            color: var(--text-light);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            padding: 12px 18px;
+            box-shadow: inset 0 0 5px rgba(0, 255, 0, 0.1);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-control:focus {
+            background-color: var(--input-bg); /* Keep background same on focus */
+            color: var(--text-light);
+            border-color: var(--accent-neon-green);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.6), inset 0 0 8px rgba(0, 255, 0, 0.3); /* Stronger glow on focus */
+            outline: none;
+        }
+
+        .form-control::placeholder {
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        /* Custom Buttons */
+        .btn-cyber {
+            background: linear-gradient(90deg, var(--accent-neon-green), var(--accent-neon-blue));
+            color: var(--bg-dark-primary); /* Dark text on vibrant button */
+            font-weight: 700;
+            padding: 13px 35px;
+            border-radius: 8px;
+            border: none;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-size: 1.15rem;
+            margin-top: 25px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
+        }
+
+        .btn-cyber:hover {
+            background: linear-gradient(90deg, var(--accent-neon-blue), var(--accent-neon-green));
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 0 25px rgba(0, 255, 0, 0.6), 0 0 15px rgba(0, 188, 212, 0.6);
+            color: var(--bg-dark-primary); /* Keep text color dark */
+        }
+
+        .btn-cyber:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: linear-gradient(90deg, #6c757d, #8d9da7);
+            box-shadow: none;
+            transform: none;
+        }
+
+
+        /* QR Code Output Grid */
+        .qr-output-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 25px;
+            justify-content: center;
+            padding-top: 30px;
+            margin-top: 30px;
+            border-top: 1px dashed rgba(0, 255, 0, 0.15); /* Dashed neon border */
+            background: rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            border-radius: 10px;
+        }
+
+        .qr-code-item {
+            background-color: rgba(0, 0, 0, 0.2); /* Darker background for each QR item */
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-align: center;
+            border: 1px solid rgba(0, 255, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qr-code-item:hover {
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3), 0 8px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .qr-code-img {
+            max-width: 120px;
+            height: auto;
+            border: 5px solid var(--accent-neon-green);
+            border-radius: 8px;
+            background-color: #fff; /* QR codes usually need white background */
+            padding: 3px;
+            margin-bottom: 12px;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.4);
+        }
+
+        .qr-code-item span {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        /* Reconstructed Output */
+        #reconstructed_secret {
+            background-color: rgba(0, 188, 212, 0.1); /* Cyan accent background */
+            border-left: 6px solid var(--accent-neon-blue);
+            padding: 25px;
+            border-radius: 12px;
+            font-size: 1.25rem;
+            margin-top: 30px;
+            font-weight: 600;
+            color: var(--accent-neon-blue);
+            word-wrap: break-word;
+            box-shadow: 0 0 15px rgba(0, 188, 212, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border: 1px solid rgba(0, 188, 212, 0.3);
+        }
+
+        #reconstructed_secret i {
+            font-size: 2rem;
+            color: var(--accent-neon-green);
+        }
+
+        /* Message Boxes (Alerts) */
+        .message-box {
+            margin-top: 25px;
+            padding: 18px 25px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 500;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            opacity: 0; /* Start hidden for fade-in */
+            animation: fadeInMessageBox 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeInMessageBox {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-box i {
+            font-size: 1.4rem;
+        }
+
+        .message-box.alert-success {
+            background-color: rgba(40, 167, 69, 0.2);
+            color: var(--success-color);
+            border: 1px solid rgba(40, 167, 69, 0.5);
+            text-shadow: 0 0 5px rgba(40, 167, 69, 0.2);
+        }
+
+        .message-box.alert-danger {
+            background-color: rgba(220, 53, 69, 0.2);
+            color: var(--danger-color);
+            border: 1px solid rgba(220, 53, 69, 0.5);
+            text-shadow: 0 0 5px rgba(220, 53, 69, 0.2);
+        }
+
+        .message-box.alert-info {
+            background-color: rgba(0, 188, 212, 0.2);
+            color: var(--info-color);
+            border: 1px solid rgba(0, 188, 212, 0.5);
+            text-shadow: 0 0 5px rgba(0, 188, 212, 0.2);
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: var(--accent-neon-green);
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        .cyber-footer {
+            text-align: center;
+            color: var(--text-muted);
+            margin-top: 50px;
+            font-size: 0.9rem;
+            padding-top: 25px;
+            border-top: 1px solid rgba(0, 255, 0, 0.08);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .cyber-container {
+                padding: 30px;
+                border-radius: 15px;
+            }
+            .cyber-header h1 {
+                font-size: 2.5rem;
+            }
+            .cyber-header h1 i {
+                font-size: 2.2rem;
+            }
+            .cyber-header p {
+                font-size: 1rem;
+            }
+            .cyber-card-section {
+                padding: 25px;
+            }
+            .cyber-card-section h3 {
+                font-size: 1.6rem;
+            }
+            .btn-cyber {
+                padding: 10px 25px;
+                font-size: 1rem;
+            }
+            .qr-output-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 15px;
+                padding: 15px;
+            }
+            .qr-code-img {
+                max-width: 90px;
+                border-width: 3px;
+            }
+            .qr-code-item {
+                padding: 10px;
+            }
+            #reconstructed_secret {
+                font-size: 1.1rem;
+                padding: 20px;
+            }
+            #reconstructed_secret i {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="cyber-container">
+        <header class="cyber-header">
+            <h1><i class="fas fa-fingerprint"></i> CipherLink</h1>
+            <p>Unbreakable data partitioning: Transform your secrets into secure, shareable QR codes with quantum-grade cryptography.</p>
+        </header>
+
+        <section class="cyber-card-section">
+            <h3><i class="fas fa-shield-alt"></i> Generate Encrypted Shares</h3>
+            <div class="mb-4">
+                <label for="secret" class="form-label">Secret Data Stream:</label>
+                <input type="text" id="secret" class="form-control" placeholder="Enter confidential text or data..." required>
+            </div>
+            <div class="mb-4">
+                <label for="shares" class="form-label">Number of Shares (N):</label>
+                <input type="number" id="shares" class="form-control" placeholder="Minimum 2" min="2" value="3" required>
+            </div>
+            <div class="mb-4">
+                <label for="threshold" class="form-label">Reconstruction Threshold (K):</label>
+                <input type="number" id="threshold" class="form-control" placeholder="K <= N" min="2" required>
+                <small class="form-text text-muted">You'll need at least **K** of **N** shares to retrieve your original data.</small>
+            </div>
+            <button id="generate-button" onclick="generateQRCodes()" class="btn btn-cyber">
+                <i class="fas fa-plus-circle"></i> Activate Share Protocol
+                <span id="generate-loading" class="loading-spinner" style="display:none;"></span>
+            </button>
+            <div id="qr_output" class="qr-output-grid"></div>
+            <div id="generate_message" class="message-box"></div>
+        </section>
+
+        <section class="cyber-card-section">
+            <h3><i class="fas fa-lock-open"></i> Reconstruct Data Stream</h3>
+            <div class="mb-4">
+                <label for="qr_files" class="form-label">Upload QR Share Modules:</label>
+                <input type="file" id="qr_files" class="form-control" multiple accept="image/png, image/jpeg, image/gif">
+                <small class="form-text text-muted">Upload at least **K** QR images to initiate data reconstruction.</small>
+            </div>
+            <button id="reconstruct-button" onclick="reconstructSecret()" class="btn btn-cyber">
+                <i class="fas fa-sync-alt"></i> Decrypt Data
+                <span id="reconstruct-loading" class="loading-spinner" style="display:none;"></span>
+            </button>
+            <div id="reconstructed_secret" class="reconstructed-output" style="display:none;">
+                <i class="fas fa-cogs"></i>
+                <span id="reconstructed_secret_text"></span>
+            </div>
+            <div id="reconstruct_message" class="message-box"></div>
+        </section>
+
+        <footer class="cyber-footer">
+            <p>&copy; 2025 CipherLink Systems. All rights reserved. | Quantum Cryptography Integrated.</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Helper function to display messages
+        function displayMessage(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<i class="fas fa-info-circle"></i> ${message}`;
+            element.classList.remove('alert-success', 'alert-danger', 'alert-info');
+            element.classList.add(`alert-${type}`);
+            if (type === 'success') element.querySelector('i').className = 'fas fa-check-circle';
+            else if (type === 'danger') element.querySelector('i').className = 'fas fa-times-circle';
+            else element.querySelector('i').className = 'fas fa-info-circle';
+
+            element.style.display = 'flex';
+            element.style.opacity = '0'; // Reset for animation
+            element.style.animation = 'fadeInMessageBox 0.5s ease-out forwards'; // Re-trigger animation
+            setTimeout(() => {
+                element.style.animation = 'none'; // Stop animation after it runs
+                element.style.display = 'none'; // Hide after a delay
+            }, 7000);
+        }
+
+        // Helper function to show/hide loading spinner and disable button
+        function showLoading(buttonId, spinnerId, show) {
+            const button = document.getElementById(buttonId);
+            const spinner = document.getElementById(spinnerId);
+            if (button && spinner) {
+                spinner.style.display = show ? 'inline-block' : 'none';
+                button.disabled = show;
+            }
+        }
+
+        async function generateQRCodes() {
+            const secretInput = document.getElementById("secret");
+            const sharesInput = document.getElementById("shares");
+            const thresholdInput = document.getElementById("threshold");
+            const qrOutputDiv = document.getElementById("qr_output");
+            const generateMessageDiv = document.getElementById("generate_message");
+
+            // Clear previous outputs and messages
+            qrOutputDiv.innerHTML = '';
+            generateMessageDiv.style.display = 'none';
+            document.getElementById("reconstructed_secret").style.display = 'none';
+
+            const secret = secretInput.value.trim();
+            const shares = parseInt(sharesInput.value);
+            const threshold = parseInt(thresholdInput.value);
+
+            showLoading('generate-button', 'generate-loading', true);
+
+            if (!secret) {
+                displayMessage("generate_message", "Error: Secret data stream cannot be empty.", "danger");
+                showLoading('generate-button', 'generate-loading', false);
+                return;
+            }
+            if (isNaN(shares) || shares < 2) {
+                displayMessage("generate_message", "Error: Number of shares (N) must be at least 2.", "danger");
+                showLoading('generate-button', 'generate-loading', false);
+                return;
+            }
+            if (isNaN(threshold) || threshold < 2 || threshold > shares) {
+                displayMessage("generate_message", `Error: Reconstruction Threshold (K) must be at least 2 and less than or equal to N (${shares}).`, "danger");
+                showLoading('generate-button', 'generate-loading', false);
+                return;
+            }
+
+            try {
+                displayMessage("generate_message", "Initiating share protocol... Please wait.", "info");
+
+                const res = await fetch('/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ secret: secret, num_shares: shares, threshold: threshold })
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.error || `Server error: ${res.status}`);
+                }
+
+                const data = await res.json();
+                if (data.images && data.images.length > 0) {
+                    data.images.forEach((url, index) => {
+                        const item = document.createElement("div");
+                        item.classList.add('qr-code-item');
+
+                        const img = document.createElement("img");
+                        img.src = url;
+                        img.alt = `CipherLink Share ${index + 1}`;
+                        img.classList.add('qr-code-img');
+
+                        const span = document.createElement("span");
+                        span.innerText = `Share ID: ${index + 1}`;
+
+                        item.appendChild(img);
+                        item.appendChild(span);
+                        qrOutputDiv.appendChild(item);
+                    });
+                    displayMessage("generate_message", `Protocol successful: ${data.images.length} encrypted shares generated!`, "success");
+                } else {
+                    displayMessage("generate_message", "Warning: No QR code shares were generated. Review inputs.", "danger");
+                }
+            } catch (error) {
+                console.error("CipherLink Generation Error:", error);
+                displayMessage("generate_message", `Generation failed: ${error.message}. Contact system admin.`, "danger");
+            } finally {
+                showLoading('generate-button', 'generate-loading', false);
+            }
+        }
+
+        async function reconstructSecret() {
+            const files = document.getElementById("qr_files").files;
+            const reconstructedSecretDiv = document.getElementById("reconstructed_secret");
+            const reconstructedSecretText = document.getElementById("reconstructed_secret_text");
+            const reconstructMessageDiv = document.getElementById("reconstruct_message");
+
+            // Clear previous outputs and messages
+            reconstructedSecretDiv.style.display = 'none';
+            reconstructedSecretText.innerText = '';
+            reconstructMessageDiv.style.display = 'none';
+
+            showLoading('reconstruct-button', 'reconstruct-loading', true);
+
+            if (files.length === 0) {
+                displayMessage("reconstruct_message", "Error: No QR share modules selected for decryption.", "danger");
+                showLoading('reconstruct-button', 'reconstruct-loading', false);
+                return;
+            }
+
+            const formData = new FormData();
+            for (let f of files) {
+                formData.append('files', f);
+            }
+
+            try {
+                displayMessage("reconstruct_message", `Analyzing ${files.length} share modules...`, "info");
+
+                const res = await fetch('/reconstruct', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.error || `Server error: ${res.status}`);
+                }
+
+                const data = await res.json();
+                if (data.secret) {
+                    reconstructedSecretText.innerText = data.secret;
+                    reconstructedSecretDiv.style.display = 'flex'; // Show result
+                    displayMessage("reconstruct_message", "Decryption successful: Secret data stream retrieved!", "success");
+                } else {
+                    displayMessage("reconstruct_message", data.error || "Decryption failed: Insufficient or corrupted share modules detected.", "danger");
+                }
+            } catch (error) {
+                console.error("CipherLink Reconstruction Error:", error);
+                displayMessage("reconstruct_message", `Reconstruction failed: ${error.message}. Verify modules and threshold.`, "danger");
+            } finally {
+                showLoading('reconstruct-button', 'reconstruct-loading', false);
+            }
+        }
+    </script>
+</body>
+
+</html>
